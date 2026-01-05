@@ -84,6 +84,15 @@ healthcare-appointment-system/
 ```
  # 🚀 Quick Start
 
+ ```
+git clone https://github.com/yourusername/healthcare-appointment-system.git
+cd healthcare-appointment-system
+pip install -r requirements.txt
+mysql -u root -p < healthcare.sql
+cp .env.example .env
+python main.py
+```
+
  
 
 
