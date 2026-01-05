@@ -5,7 +5,7 @@ This system enables patients to find doctors, book appointments, manage schedule
 
 # ✨ Key Features
 
-🤖 AI Agent
+## 🤖 AI Agent
 
 LangGraph-based conversational agent
 
