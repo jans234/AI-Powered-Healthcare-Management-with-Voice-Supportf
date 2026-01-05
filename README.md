@@ -4,7 +4,7 @@ An AI-powered healthcare appointment booking system featuring text chat and voic
 This system enables patients to find doctors, book appointments, manage schedules, and interact naturally via chat or voice.
 
 ![HealthCare](SS1.png)
-![Healthcare](SS2.png)
+![Healthcare](SS_2.png)
 
 # ✨ Key Features
 
