@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Healthcare Voice Assistant</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --bg-light: #f8fafc;
+      --bg-dark: #0f172a;
+      --card-light: #ffffff;
+      --card-dark: #1e293b;
+      --text-light: #0f172a;
+      --text-dark: #f1f5f9;
+      --border: #e2e8f0;
+      --glass: rgba(255, 255, 255, 0.1);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: var(--text-light);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.2) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 50%);
+      pointer-events: none;
+      animation: floatBackground 20s ease-in-out infinite;
+    }
+
+    @keyframes floatBackground {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+    }
+
+    body.dark-mode {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: var(--text-dark);
+    }
+
+    body.dark-mode::before {
+      background: radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+    }
+
+    /* LOGIN SCREEN STYLES */
+    .login-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(0px);
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .login-container.hidden {
+      opacity: 0;
+      pointer-events: none;
+      backdrop-filter: blur(20px);
+    }
+
+    .login-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(30px);
+      border-radius: 30px;
+      padding: 50px 40px;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.2),
+                  0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+      max-width: 450px;
+      width: 90%;
+      animation: loginFloat 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+
+    body.dark-mode .login-card {
+      background: rgba(30, 41, 59, 0.95);
+    }
+
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.8s;
+    }
+
+    .login-card:hover::before {
+      left: 100%;
+    }
+
+    @keyframes loginFloat {
+      0% {
+        opacity: 0;
+        transform: translateY(-100px) scale(0.8) rotateX(30deg);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotateX(0);
+      }
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .login-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin: 0 auto 20px;
+      box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
+      animation: iconPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4); }
+      50% { transform: scale(1.1); box-shadow: 0 15px 50px rgba(99, 102, 241, 0.6); }
+    }
+
+    .login-title {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .login-subtitle {
+      color: #64748b;
+      font-size: 1rem;
+    }
+
+    body.dark-mode .login-subtitle {
+      color: #94a3b8;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-group {
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-light);
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    body.dark-mode .form-group label {
+      color: var(--text-dark);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 18px;
+      font-size: 1.2rem;
+      color: var(--primary);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 16px 20px 16px 50px;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: var(--bg-light);
+      color: var(--text-light);
+    }
+
+    body.dark-mode .login-input {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+      border-color: #334155;
+    }
+
+    .login-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15),
+                  0 8px 20px rgba(99, 102, 241, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .login-input:focus + .input-icon {
+      transform: scale(1.2);
+      color: var(--secondary);
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 18px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: #64748b;
+      transition: all 0.3s ease;
+    }
+
+    .password-toggle:hover {
+      color: var(--primary);
+      transform: scale(1.2);
+    }
+
+    .remember-forgot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: -10px;
+    }
+
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .checkbox-wrapper input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .checkbox-label {
+      font-size: 0.9rem;
+      color: #64748b;
+      cursor: pointer;
+    }
+
+    .forgot-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .forgot-link:hover {
+      color: var(--secondary);
+      transform: translateX(3px);
+    }
+
+    .login-btn {
+      padding: 18px 32px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
+      position: relative;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .login-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .login-btn:hover::before {
+      width: 400px;
+      height: 400px;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 45px rgba(99, 102, 241, 0.6);
+    }
+
+    .login-btn:active {
+      transform: translateY(-1px);
+    }
+
+    .register-link {
+      text-align: center;
+      margin-top: 25px;
+      color: #64748b;
+      font-size: 0.95rem;
+    }
+
+    .register-link a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+
+    .register-link a:hover {
+      color: var(--secondary);
+      text-decoration: underline;
+    }
+
+    .social-login {
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 2px solid var(--border);
+    }
+
+    body.dark-mode .social-login {
+      border-color: #334155;
+    }
+
+    .social-title {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    .social-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .social-btn {
+      padding: 14px;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    body.dark-mode .social-btn {
+      border-color: #334155;
+      color: var(--text-dark);
+    }
+
+    .social-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .social-btn.google {
+      border-color: #db4437;
+      color: #db4437;
+    }
+
+    .social-btn.google:hover {
+      background: #db4437;
+      color: white;
+    }
+
+    .social-btn.facebook {
+      border-color: #4267B2;
+      color: #4267B2;
+    }
+
+    .social-btn.facebook:hover {
+      background: #4267B2;
+      color: white;
+    }
+
+    /* MAIN APP STYLES */
+    .app-container {
+      opacity: 0;
+      transform: scale(0.95);
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+
+    .app-container.visible {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: all;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header {
+      text-align: center;
+      padding: 40px 20px;
+      color: white;
+      margin-bottom: 30px;
+      animation: fadeInDown 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-content {
+      flex: 1;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      margin-bottom: 15px;
+      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.2); }
+    }
+
+    .header p {
+      font-size: 1.2rem;
+      opacity: 0.95;
+      font-weight: 300;
+      animation: fadeIn 1s ease 0.3s backwards;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      padding: 12px 20px;
+      border-radius: 50px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      animation: slideInRight 0.8s ease;
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .user-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .logout-btn {
+      background: rgba(239, 68, 68, 0.2);
+      color: white;
+      border: 2px solid rgba(239, 68, 68, 0.5);
+      padding: 8px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .logout-btn:hover {
+      background: var(--error);
+      border-color: var(--error);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .theme-toggle:hover {
+      transform: rotate(180deg) scale(1.15);
+      background: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 12px 48px rgba(99, 102, 241, 0.3);
+    }
+
+    .main-content {
+      grid-template-columns: 250px 1fr 350px;
+      gap: 25px;
+      display: grid;
+      animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @media (max-width: 1200px) {
+      .main-content {
+        grid-template-columns: 180px 1fr 300px;
+      }
+    }
+    
+    @media (max-width: 1024px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      
+      .header {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15),
+                  0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+    }
+
+    .card:hover::before {
+      transform: scaleX(1);
+    }
+
+    body.dark-mode .card {
+      background: rgba(30, 41, 59, 0.95);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                  0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25),
+                  0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+    }
+
+    .card h2 {
+      color: var(--primary);
+      font-size: 1.8rem;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+    }
+
+    body.dark-mode .card h2 {
+      color: var(--secondary);
+    }
+
+    .chat-box {
+      display: flex;
+      flex-direction: column;
+      height: 700px;
+    }
+    
+    .sidebar-nav {
+      height: 700px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .sidebar-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 10px;
+    }
+    
+    .action-btn {
+      width: 100%;
+      padding: 14px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      border: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.5s, height 0.5s;
+    }
+
+    .action-btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .action-btn.primary-action {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+    }
+
+    .action-btn.primary-action:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+    }
+    
+    .action-btn.secondary-action {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+      border: 2px solid var(--error);
+    }
+    
+    .action-btn.secondary-action:hover {
+      background: var(--error);
+      color: white;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(239, 68, 68, 0.5);
+    }
+
+    .voice-control {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+      border-radius: 20px;
+      border: 2px solid rgba(99, 102, 241, 0.2);
+      animation: slideInLeft 0.6s ease;
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .voice-btn {
+      flex: 1;
+      padding: 16px;
+      border: none;
+      border-radius: 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .voice-btn.record {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+    }
+
+    .voice-btn.record:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 30px rgba(239, 68, 68, 0.5);
+    }
+
+    .voice-btn.record.recording {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      50% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+    }
+
+    .voice-btn.speak {
+      background: linear-gradient(135deg, var(--success), #059669);
+      color: white;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .voice-btn.speak:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 30px rgba(16, 185, 129, 0.5);
+    }
+
+    .voice-btn.speak.speaking {
+      animation: speakPulse 0.8s ease-in-out infinite;
+    }
+
+    @keyframes speakPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    .voice-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 25px;
+      background: linear-gradient(to bottom, var(--bg-light), rgba(248, 250, 252, 0.5));
+      border-radius: 20px;
+      margin-bottom: 20px;
+      scroll-behavior: smooth;
+      position: relative;
+    }
+
+    body.dark-mode .messages {
+      background: linear-gradient(to bottom, var(--bg-dark), rgba(15, 23, 42, 0.5));
+    }
+
+    .messages::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .messages::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--primary), var(--secondary));
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .messages::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, var(--secondary), var(--primary));
+    }
+
+    .message {
+      margin-bottom: 20px;
+      animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      animation-fill-mode: forwards;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .message.user {
+      align-items: flex-end;
+    }
+
+    .message-content {
+      display: inline-block;
+      padding: 18px 24px;
+      border-radius: 20px;
+      max-width: 80%;
+      word-wrap: break-word;
+      line-height: 1.6;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .message-content:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .message.user .message-content {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border-bottom-right-radius: 6px;
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .message.bot .message-content {
+      background: white;
+      color: var(--text-light);
+      border: 2px solid var(--border);
+      border-bottom-left-radius: 6px;
+    }
+
+    body.dark-mode .message.bot .message-content {
+      background: var(--card-dark);
+      color: var(--text-dark);
+      border-color: #334155;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      position: relative;
+    }
+
+    input:not(.login-input), select, textarea {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: var(--bg-light);
+      color: var(--text-light);
+    }
+
+    body.dark-mode input:not(.login-input),
+    body.dark-mode select,
+    body.dark-mode textarea {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+      border-color: #334155;
+    }
+
+    input:not(.login-input):focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15),
+                  0 8px 20px rgba(99, 102, 241, 0.1);
+      transform: translateY(-2px);
+    }
+
+    button:not(.login-btn):not(.social-btn):not(.logout-btn):not(.theme-toggle) {
+      padding: 16px 32px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:not(.login-btn):not(.social-btn):not(.logout-btn):not(.theme-toggle)::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    button:not(.login-btn):not(.social-btn):not(.logout-btn):not(.theme-toggle):hover::after {
+      width: 300px;
+      height: 300px;
+    }
+
+    button:not(.login-btn):not(.social-btn):not(.logout-btn):not(.theme-toggle):hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(99, 102, 241, 0.5);
+    }
+
+    button:not(.login-btn):not(.social-btn):not(.logout-btn):not(.theme-toggle):active {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .quick-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      animation: fadeIn 0.8s ease 0.4s backwards;
+    }
+
+    .quick-btn {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      border-radius: 30px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 600;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quick-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .quick-btn:hover::before {
+      left: 100%;
+    }
+
+    .quick-btn:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .doctor-item {
+      padding: 20px;
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      margin-bottom: 12px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.5);
+      animation: fadeInRight 0.5s ease backwards;
+    }
+
+    .doctor-item:nth-child(1) { animation-delay: 0.1s; }
+    .doctor-item:nth-child(2) { animation-delay: 0.2s; }
+    .doctor-item:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes fadeInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    body.dark-mode .doctor-item {
+      border-color: #334155;
+      background: rgba(30, 41, 59, 0.5);
+    }
+
+    .doctor-item:hover {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
+      transform: translateX(8px) scale(1.02);
+      box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
+    }
+
+    .doctor-name {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 1.15rem;
+      margin-bottom: 5px;
+    }
+
+    body.dark-mode .doctor-name {
+      color: var(--secondary);
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 6px;
+      padding: 12px 18px;
+    }
+
+    .typing-indicator span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+      0%, 60%, 100% { 
+        transform: translateY(0); 
+        opacity: 0.7;
+      }
+      30% { 
+        transform: translateY(-15px); 
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9) rotateX(10deg);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) rotateX(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .loading {
+      width: 22px;
+      height: 22px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+
+  <!-- LOGIN SCREEN -->
+  <div class="login-container" id="loginContainer">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-icon">🏥</div>
+        <h2 class="login-title">Welcome Back</h2>
+        <p class="login-subtitle">Login to access your healthcare dashboard</p>
+      </div>
+
+      <form class="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Email or Phone</label>
+          <div class="input-wrapper">
+            <span class="input-icon">📧</span>
+            <input type="text" class="login-input" id="loginEmail" placeholder="Enter your email or phone" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" class="login-input" id="loginPassword" placeholder="Enter your password" required>
+            <span class="password-toggle" onclick="togglePassword()">👁️</span>
+          </div>
+        </div>
+
+        <div class="remember-forgot">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="rememberMe">
+            <label class="checkbox-label" for="rememberMe">Remember me</label>
+          </div>
+          <a href="#" class="forgot-link">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="login-btn">
+          <span style="position: relative; z-index: 1;">Login</span>
+        </button>
+
+        <div class="register-link">
+          Don't have an account? <a href="#" onclick="showRegister(event)">Register Now</a>
+        </div>
+
+        <div class="social-login">
+          <p class="social-title">Or continue with</p>
+          <div class="social-buttons">
+            <button type="button" class="social-btn google" onclick="socialLogin('google')">
+              <span>🔍</span>
+              <span>Google</span>
+            </button>
+            <button type="button" class="social-btn facebook" onclick="socialLogin('facebook')">
+              <span>📘</span>
+              <span>Facebook</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div class="app-container" id="appContainer">
+    <div class="container">
+      <div class="header">
+        <div class="header-content">
+          <h1>🏥 Healthcare Voice Assistant</h1>
+          <p>AI-Powered Healthcare Management with Voice Support</p>
+        </div>
+        <div class="user-profile" id="userProfile">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <span class="user-name" id="userName">User</span>
+          <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <div class="card sidebar-nav">
+          <h2>🚀 Session Actions</h2>
+          <div class="sidebar-actions">
+            <button class="action-btn primary-action" onclick="newChat()">➕ Start New Chat</button>
+            <button class="action-btn secondary-action" onclick="deleteChatHistory()">🗑️ Delete Chat History</button>
+          </div>
+        </div>
+
+        <div class="card chat-box">
+          <h2>💬 Chat with AI Assistant</h2>
+          
+          <div class="voice-control">
+            <button class="voice-btn record" id="recordBtn" onclick="toggleRecording()">
+              <span id="recordIcon">🎤</span>
+              <span id="recordText">Record Voice</span>
+            </button>
+            <button class="voice-btn speak" id="speakBtn" onclick="speakLastMessage()" disabled>
+              <span>🔊</span>
+              <span>Speak Response</span>
+            </button>
+          </div>
+
+          <div class="quick-actions">
+            <button class="quick-btn" onclick="quickMessage('Show me available doctors')">👨‍⚕️ Show Doctors</button>
+            <button class="quick-btn" onclick="quickMessage('I need a cardiologist')">❤️ Find Cardiologist</button>
+            <button class="quick-btn" onclick="quickMessage('Show my appointments')">📅 My Appointments</button>
+          </div>
+
+          <div class="messages" id="chatMessages">
+            <div class="message bot">
+              <div class="message-content">
+                Hello! 👋 I'm your healthcare assistant with voice support. I can help you book appointments, find doctors, and manage your healthcare needs. How can I assist you today?
+              </div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <input type="text" id="userMessage" placeholder="Type your message or use voice..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()" id="sendBtn">Send</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>👨‍⚕️ Available Doctors</h2>
+          <div class="form-group">
+            <select id="specializationFilter" onchange="loadDoctors()">
+              <option value="">All Specializations</option>
+            </select>
+          </div>
+          <div id="doctorsList" style="max-height: 400px; overflow-y: auto;">
+            <p style="text-align: center; color: #64748b;">Loading doctors...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8000";
+    let SESSION_ID = `session_${Date.now()}`;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+    let lastBotMessage = "";
+    let currentUser = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      checkLoginStatus();
+    });
+
+    function checkLoginStatus() {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        showApp();
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const remember = document.getElementById('rememberMe').checked;
+
+      // Simple demo login - in production, validate against backend
+      if (email && password) {
+        const user = {
+          name: email.split('@')[0] || email.split('-')[0],
+          email: email,
+          avatar: email.charAt(0).toUpperCase()
+        };
+
+        currentUser = user;
+        if (remember) {
+          localStorage.setItem('currentUser', JSON.stringify(user));
+        }
+
+        showApp();
+      }
+    }
+
+    function showApp() {
+      const loginContainer = document.getElementById('loginContainer');
+      const appContainer = document.getElementById('appContainer');
+      
+      loginContainer.classList.add('hidden');
+      
+      setTimeout(() => {
+        appContainer.classList.add('visible');
+        updateUserProfile();
+        loadDoctors();
+        loadSpecializations();
+      }, 300);
+    }
+
+    function updateUserProfile() {
+      if (currentUser) {
+        document.getElementById('userName').textContent = currentUser.name;
+        document.getElementById('userAvatar').textContent = currentUser.avatar;
+      }
+    }
+
+    function handleLogout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('currentUser');
+        currentUser = null;
+        
+        const loginContainer = document.getElementById('loginContainer');
+        const appContainer = document.getElementById('appContainer');
+        
+        appContainer.classList.remove('visible');
+        
+        setTimeout(() => {
+          loginContainer.classList.remove('hidden');
+          document.getElementById('loginEmail').value = '';
+          document.getElementById('loginPassword').value = '';
+        }, 300);
+      }
+    }
+
+    function togglePassword() {
+      const input = document.getElementById('loginPassword');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function showRegister(e) {
+      e.preventDefault();
+      alert('Registration feature coming soon! For demo, use any email and password to login.');
+    }
+
+    function socialLogin(provider) {
+      alert(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login coming soon! For demo, use the email/password form.`);
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      const btn = document.querySelector('.theme-toggle');
+      btn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    }
+
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+      document.querySelector('.theme-toggle').textContent = '☀️';
+    }
+    
+    function getInitialBotMessage() {
+      return "Hello! 👋 I'm your healthcare assistant with voice support. I can help you book appointments, find doctors, and manage your healthcare needs. How can I assist you today?";
+    }
+    
+    function newChat() {
+      SESSION_ID = `session_${Date.now()}`;
+      const messagesDiv = document.getElementById("chatMessages");
+      messagesDiv.innerHTML = '';
+      addMessage(getInitialBotMessage(), "bot");
+      addMessage(`**New chat session started.** Your current session ID is: **${SESSION_ID}**`, "bot");
+    }
+
+    function deleteChatHistory() {
+      const messagesDiv = document.getElementById("chatMessages");
+      messagesDiv.innerHTML = '';
+      addMessage(getInitialBotMessage(), "bot");
+      addMessage(`**Chat history cleared.** The current session ID **${SESSION_ID}** is preserved.`, "bot");
+    }
+
+    async function toggleRecording() {
+      const recordBtn = document.getElementById("recordBtn");
+      const recordIcon = document.getElementById("recordIcon");
+      const recordText = document.getElementById("recordText");
+
+      if (!isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            await sendVoiceMessage(audioBlob);
+            stream.getTracks().forEach(track => track.stop());
+          };
+
+          mediaRecorder.start();
+          isRecording = true;
+          recordBtn.classList.add('recording');
+          recordIcon.textContent = '⏹️';
+          recordText.textContent = 'Stop Recording';
+          
+          addMessage("🎤 Recording... Speak now!", "bot");
+        } catch (error) {
+          console.error('Error accessing microphone:', error);
+          addMessage("⚠️ Could not access microphone. Please check permissions.", "bot");
+        }
+      } else {
+        mediaRecorder.stop();
+        isRecording = false;
+        recordBtn.classList.remove('recording');
+        recordIcon.textContent = '🎤';
+        recordText.textContent = 'Record Voice';
+      }
+    }
+
+    async function sendVoiceMessage(audioBlob) {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'voice.webm');
+      formData.append('session_id', SESSION_ID);
+
+      const recordBtn = document.getElementById("recordBtn");
+      recordBtn.disabled = true;
+
+      addTypingIndicator();
+
+      try {
+        const res = await fetch(`${API_BASE}/api/voice/chat`, {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+        removeTypingIndicator();
+
+        if (data.success) {
+          addMessage(data.user_message, "user");
+          
+          const words = data.bot_response.split(' ');
+          const messageDiv = document.createElement("div");
+          messageDiv.className = "message bot";
+          messageDiv.innerHTML = '<div class="message-content"></div>';
+          document.getElementById("chatMessages").appendChild(messageDiv);
+          const contentDiv = messageDiv.querySelector('.message-content');
+          
+          let currentText = '';
+          for (let i = 0; i < words.length; i++) {
+            await new Promise(resolve => setTimeout(resolve, 30));
+            currentText += words[i] + ' ';
+            contentDiv.innerHTML = currentText;
+            document.getElementById("chatMessages").scrollTop = document.getElementById("chatMessages").scrollHeight;
+          }
+
+          lastBotMessage = data.bot_response;
+          document.getElementById("speakBtn").disabled = false;
+
+          if (data.audio_available && data.audio_base64) {
+            const audio = new Audio('data:audio/mpeg;base64,' + data.audio_base64);
+            audio.play();
+          }
+        } else {
+          addMessage("⚠️ Voice processing failed. Please try again.", "bot");
+        }
+      } catch (err) {
+        removeTypingIndicator();
+        addMessage("⚠️ Error processing voice message. Please ensure the API is running.", "bot");
+        console.error(err);
+      } finally {
+        recordBtn.disabled = false;
+      }
+    }
+
+    async function speakLastMessage() {
+      if (!lastBotMessage) return;
+
+      const speakBtn = document.getElementById("speakBtn");
+      speakBtn.disabled = true;
+      speakBtn.classList.add('speaking');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/voice/speak?text=${encodeURIComponent(lastBotMessage)}&voice=nova`, {
+          method: "POST"
+        });
+
+        if (res.ok) {
+          const audioBlob = await res.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const audio = new Audio(audioUrl);
+          
+          audio.onended = () => {
+            speakBtn.classList.remove('speaking');
+            speakBtn.disabled = false;
+          };
+          
+          audio.play();
+        } else {
+          throw new Error('TTS failed');
+        }
+      } catch (err) {
+        console.error('Error with text-to-speech:', err);
+        addMessage("⚠️ Could not convert text to speech.", "bot");
+        speakBtn.classList.remove('speaking');
+        speakBtn.disabled = false;
+      }
+    }
+
+    function addMessage(text, type) {
+      const messagesDiv = document.getElementById("chatMessages");
+      const messageDiv = document.createElement("div");
+      messageDiv.className = `message ${type}`;
+      messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      
+      if (type === "bot") {
+        lastBotMessage = text;
+        document.getElementById("speakBtn").disabled = false;
+      }
+    }
+
+    function addTypingIndicator() {
+      const messagesDiv = document.getElementById("chatMessages");
+      const typingDiv = document.createElement("div");
+      typingDiv.className = "message bot";
+      typingDiv.id = "typingIndicator";
+      typingDiv.innerHTML = `
+        <div class="message-content">
+          <div class="typing-indicator">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      `;
+      messagesDiv.appendChild(typingDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const indicator = document.getElementById("typingIndicator");
+      if (indicator) indicator.remove();
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === "Enter") sendMessage();
+    }
+
+    function quickMessage(msg) {
+      document.getElementById("userMessage").value = msg;
+      sendMessage();
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("userMessage");
+      const msg = input.value.trim();
+      if (!msg) return;
+      
+      addMessage(msg, "user");
+      input.value = "";
+
+      const sendBtn = document.getElementById("sendBtn");
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<div class="loading"></div>';
+      
+      addTypingIndicator();
+
+      try {
+        const res = await fetch(`${API_BASE}/api/chat`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            session_id: SESSION_ID,
+            message: msg,
+            patient_phone: null 
+          })
+        });
+
+        const data = await res.json();
+        removeTypingIndicator();
+        
+        if (data.response) {
+          const words = data.response.split(' ');
+          const messageDiv = document.createElement("div");
+          messageDiv.className = "message bot";
+          messageDiv.innerHTML = '<div class="message-content"></div>';
+          document.getElementById("chatMessages").appendChild(messageDiv);
+          const contentDiv = messageDiv.querySelector('.message-content');
+          
+          let currentText = '';
+          for (let i = 0; i < words.length; i++) {
+            await new Promise(resolve => setTimeout(resolve, 30));
+            currentText += words[i] + ' ';
+            contentDiv.innerHTML = currentText;
+            document.getElementById("chatMessages").scrollTop = document.getElementById("chatMessages").scrollHeight;
+          }
+          
+          lastBotMessage = data.response;
+          document.getElementById("speakBtn").disabled = false;
+        } else {
+          addMessage("I apologize, but I couldn't process that request. Please try again.", "bot");
+        }
+      } catch (err) {
+        removeTypingIndicator();
+        addMessage("⚠️ Error connecting to server. Please ensure the API is running.", "bot");
+        console.error(err);
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Send";
+      }
+    }
+
+    async function loadDoctors() {
+      const spec = document.getElementById("specializationFilter").value;
+      const url = spec ? `${API_BASE}/api/doctors?specialization=${spec}` : `${API_BASE}/api/doctors`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const list = document.getElementById("doctorsList");
+
+        if (data.success && data.doctors.length) {
+          list.innerHTML = data.doctors.map(doc => `
+            <div class="doctor-item">
+              <div class="doctor-name">Dr. ${doc.name}</div>
+              <div class="doctor-info" style="color: #64748b; font-size: 0.9rem; line-height: 1.6;">
+                ${doc.specialization} • ${doc.years_of_experience} years experience<br>
+                Rating: ⭐ ${doc.rating} • Fee: PKR ${doc.consultation_fee.toLocaleString()}<br>
+                📞 ${doc.phone}
+              </div>
+            </div>
+          `).join("");
+        } else {
+          list.innerHTML = "<p style='text-align: center; color: #64748b;'>No doctors found.</p>";
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("doctorsList").innerHTML =
+          "<p style='text-align: center; color: #ef4444;'>Error fetching doctors. Is the server running?</p>";
+      }
+    }
+
+    async function loadSpecializations() {
+      try {
+        const res = await fetch(`${API_BASE}/api/specializations`);
+        const data = await res.json();
+        if (data.success) {
+          const sel = document.getElementById("specializationFilter");
+          data.specializations.forEach(s => {
+            const o = document.createElement("option");
+            o.value = s;
+            o.textContent = s;
+            sel.appendChild(o);
+          });
+        }
+      } catch (e) {
+        console.warn("Could not load specializations:", e);
+      }
+    }
+  </script>
+</body>
+</html>
