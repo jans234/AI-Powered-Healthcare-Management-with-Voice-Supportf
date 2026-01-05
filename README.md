@@ -68,7 +68,7 @@ HTML, CSS, JavaScript
 Web Audio API
 
 # 📁 Project Structure
-
+```
 healthcare-appointment-system/
 ├── main.py              # FastAPI app & routes
 
@@ -91,5 +91,9 @@ healthcare-appointment-system/
 └── interface/
 
  └── index.html       # Web UI (chat + voice)
+```
+ # 🚀 Quick Start
+
+ 
 
 
