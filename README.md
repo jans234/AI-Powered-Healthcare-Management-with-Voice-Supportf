@@ -109,3 +109,8 @@ GET /api/doctors – List doctors
 POST /api/appointments/book – Book appointment
 
 POST /api/appointments/cancel – Cancel appointment
+
+# ⭐ Support
+
+If you find this project useful, please star the repo ⭐
+Contributions and feedback are welcome!
