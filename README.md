@@ -47,3 +47,23 @@ Doctor & patient alerts
 
 SMTP-based email service
 
+## 🛠 Tech Stack
+
+Backend
+
+FastAPI
+
+LangChain + LangGraph
+
+OpenAI (GPT-4, Whisper, TTS)
+
+Database
+
+MySQL
+
+Frontend
+
+HTML, CSS, JavaScript
+
+Web Audio API
+
