@@ -98,4 +98,14 @@ Web App: http://localhost:8000
 
 API Docs: http://localhost:8000/docs
 
+## 🔗 Core API Endpoints
 
+POST /api/chat – Chat with AI
+
+POST /api/voice/chat – Full voice interaction
+
+GET /api/doctors – List doctors
+
+POST /api/appointments/book – Book appointment
+
+POST /api/appointments/cancel – Cancel appointment
