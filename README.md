@@ -6,27 +6,39 @@ This system enables patients to find doctors, book appointments, manage schedule
 ## ✨ Key Features
 🤖 AI Agent
 LangGraph-based conversational agent
+
 Context-aware multi-step workflows
+
 Tool-using AI (doctor search, booking, cancellation, etc.)
 
 ## 🎤 Voice & Chat
 Text chat interface
+
 Voice input (OpenAI Whisper – STT)
+
 Voice output (OpenAI TTS – 6 voices)
+
 Seamless chat ↔ voice switching
 
 ## 📅 Appointment Management
 Book, view, cancel, and reschedule appointments
+
 Real-time doctor availability
+
 Automatic email notifications
 
 ##🩺 Doctor Discovery
+
 Search by specialization
+
 Doctor profiles (experience, fees, schedules)
+
 AI-based doctor recommendations
 
 ## 📧 Notifications
+
 HTML email confirmations
+
 Doctor & patient alerts
 
 SMTP-based email service
