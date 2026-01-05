@@ -31,7 +31,7 @@ Real-time doctor availability
 
 Automatic email notifications
 
-##🩺 Doctor Discovery
+## 🩺 Doctor Discovery
 
 Search by specialization
 
