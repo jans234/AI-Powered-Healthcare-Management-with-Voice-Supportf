@@ -71,14 +71,23 @@ Web Audio API
 
 healthcare-appointment-system/
 ├── main.py              # FastAPI app & routes
+
 ├── workflow.py          # LangGraph agent workflow
+
 ├── tools.py             # AI tools (booking, search, etc.)
+
 ├── database.py          # MySQL operations
+
 ├── voice_service.py     # STT & TTS
+
 ├── send_email.py        # Email notifications
+
 ├── healthcare.sql       # Database schema
+
 ├── requirements.txt
+
 ├── .env.example
+
 └── interface/
     └── index.html       # Web UI (chat + voice)
 
