@@ -89,6 +89,7 @@ healthcare-appointment-system/
 ├── .env.example
 
 └── interface/
+
     └── index.html       # Web UI (chat + voice)
 
 
