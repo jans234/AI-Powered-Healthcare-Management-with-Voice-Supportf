@@ -92,7 +92,10 @@ mysql -u root -p < healthcare.sql
 cp .env.example .env
 python main.py
 ```
+## Access
 
- 
+Web App: http://localhost:8000
+
+API Docs: http://localhost:8000/docs
 
 
